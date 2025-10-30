@@ -1,0 +1,8 @@
+{
+  "name": "ia-estilista-web",
+  "version": "1.0.0",
+  "description": "Página web que aplica estilos generados por Gemini.",
+  "dependencies": {
+    "@google/generative-ai": "^0.19.0"
+  }
+}

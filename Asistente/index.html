@@ -72,7 +72,9 @@
 <body>
   <h1>🧠 IA Estilista Web</h1>
   <div class="content">
-    <p>Escribe cómo quieres que se vea la página. <br>Ejemplo: <em>"Haz que tenga un estilo futurista con tonos azules y animaciones suaves"</em></p>
+    <p>Describe cómo quieres que se vea la página.<br>
+      <em>Ejemplo: "Haz que tenga un estilo futurista con tonos azules y animaciones suaves"</em>
+    </p>
 
     <input type="text" id="inputText" placeholder="Describe el estilo deseado...">
     <button id="generateButton">Aplicar Estilo</button>
@@ -82,21 +84,7 @@
     <pre id="generatedCSS"></pre>
   </div>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "@google/generative-ai": "https://esm.run/@google/generative-ai"
-      }
-    }
-  </script>
-
-  <script type="module">
-    import { GoogleGenerativeAI } from "@google/generative-ai";
-
-    const API_KEY = "AIzaSyB3EoGUiwuXQXb2l1Q6IJh6jo3OlMVYAYU"; // 🔒 Reemplaza con tu API Key de Gemini
-    const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
+  <script>
     const button = document.getElementById("generateButton");
     const input = document.getElementById("inputText");
     const status = document.getElementById("status");
@@ -112,33 +100,37 @@
       status.textContent = "✨ Aplicando estilo con IA...";
 
       try {
-        const result = await model.generateContent(`
-          Actúa como un diseñador web experto. Genera solo código CSS (sin texto adicional)
-          para aplicar el siguiente estilo a una página HTML existente: ${prompt}.
-          El código debe ser válido y usar selectores generales como body, h1, button, etc.
-        `);
+        const response = await fetch("/api/estilo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        });
 
-        const cssCode = result.response.text().replace(/```css|```/g, "").trim();
+        const data = await response.json();
 
-        // Mostrar CSS generado
-        cssBox.textContent = cssCode;
+        if (!data.css) {
+          throw new Error("No se recibió CSS válido");
+        }
 
-        // Eliminar estilos anteriores generados por IA
+        cssBox.textContent = data.css;
+
+        // Eliminar estilos previos
         const oldStyle = document.getElementById("aiStyle");
         if (oldStyle) oldStyle.remove();
 
-        // Crear nuevo estilo e insertarlo
+        // Insertar nuevo estilo generado
         const style = document.createElement("style");
         style.id = "aiStyle";
-        style.innerHTML = cssCode;
+        style.innerHTML = data.css;
         document.head.appendChild(style);
 
         status.textContent = "✅ Estilo aplicado correctamente";
       } catch (error) {
-        console.error("Error al generar el estilo:", error);
-        status.textContent = "❌ Ocurrió un error al generar el estilo. Revisa la consola.";
+        console.error("Error:", error);
+        status.textContent = "❌ Ocurrió un error al generar el estilo.";
       }
     });
   </script>
 </body>
 </html>
+
